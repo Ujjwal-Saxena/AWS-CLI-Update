@@ -1,0 +1,74 @@
+We will be looking into few scenarios which customers usually face with working on AWS-CLI.
+
+SCENARIO-1
+-----------
+
+There are certain scenarios wherein, root and non-root users have aws-cli installed in different path. In order to verify if the root user and any other users are pointing to the same binary, kindly run below command for each user:
+```
+$ which aws
+```
+
+If different users are pointing to different binaries then, it indicates that customer have two different AWS CLIs installed. In case if customers have separate versions of AWS-CLI installed, then the instance uses the first one found in the search path. To check the same, kindly execute below command for each root and non-root user:
+```
+$ aws --version
+```
+
+SCENARIO-2
+-----------
+Customer have lost access to EKS cluster, even after setting correct cluster context and are getting below error while running kubectl commands:
+```
+$ kubectl version
+error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"
+```
+
+SOLUTION
+---------
+
+To update the AWS-CLI version and to keep the consistent AWS CLI version on an Linux instance throughout (irrespective for root and non-root users), kindly follow below steps:
+
+Step-1 Identify the installed directory and dependencies of AWS-CLI using below: [1]
+------
+```
+$ which aws
+$ ls -ltr /usr/local/aws
+$ ls -ltr /usr/local/aws-cli/aws
+$ ls -ltr /usr/local/bin/aws
+```
+
+Step-2 : Firstly uninstall all the AWS CLI versions using below commands. Ensure to update the installed binary path correctly in case if AWS-CLI is installed in different path. If AWS-CLI was installed with default configuration, then execute below commands directly :
+-------
+```
+$ sudo rm /usr/local/bin/aws
+$ sudo rm /usr/local/bin/aws_completer
+$ sudo rm -rf /usr/local/aws-cli
+$ sudo yum remove awscli
+```
+
+Step-3 Verify if aws-cli still exists :
+------
+```
+$ which aws
+$ aws --version
+command not found: aws
+```
+
+Note : If the aws version is returned, it means that an older AWS CLI still exists and is installed somewhere in the system or it might happen in situations when you didn't use the same uninstall method that you used to originally install the AWS CLI. In such situations, try restarting the terminal or reboot the machine for it to identify terminal updates (if any).
+======
+
+Step-4 After successfully uninstalling AWS-CLI, install latest version of AWS-CLI v2 using below commands: [2]
+------
+```
+$ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+$ unzip -u awscliv2.zip
+$ sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update
+$ /usr/local/bin/aws --version
+$ mv /usr/local/bin/aws /usr/bin
+$ aws --version
+```
+
+REFERENCES:
+===========
+
+[1] Uninstall aws-cli: https://docs.aws.amazon.com/cli/v1/userguide/install-linux.html
+
+[2] Install AWS-CLI : https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
